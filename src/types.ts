@@ -16,7 +16,21 @@ export interface UserSettings {
   theme: 'graphite' | 'matcha' | 'ocean' | 'peach' | 'lavender';
   locationPreference: 'gym' | 'home' | 'outdoor';
   equipmentPreference: 'equipment' | 'bodyweight';
+  username?: string;
 }
 
-export type TabType = 'home' | 'trends' | 'health' | 'settings';
+export type TabType = 'home' | 'trends' | 'health' | 'community' | 'settings';
+
+export interface CommunityPost {
+  _id?: string;
+  username: string;
+  content: string;
+  recordType: 'workout' | 'rest';
+  type: string;
+  durationMins: number;
+  intensity?: string;
+  mood?: string;
+  timestamp: number;
+  createdAt: number;
+}
 

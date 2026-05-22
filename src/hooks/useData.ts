@@ -9,6 +9,7 @@ const defaultSettings: UserSettings = {
   theme: 'graphite',
   locationPreference: 'gym',
   equipmentPreference: 'bodyweight',
+  username: `User_${Math.floor(Math.random() * 10000)}`,
 };
 
 export function useData() {

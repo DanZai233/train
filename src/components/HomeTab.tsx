@@ -49,6 +49,7 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
   const [selectedMood, setSelectedMood] = useState(MOODS[0]);
   const [selectedIntensity, setSelectedIntensity] = useState(INTENSITIES[1]);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [shareToSquare, setShareToSquare] = useState(true);
 
   useEffect(() => {
     if (!currentWorkoutTypes.includes(workoutType)) {
@@ -69,8 +70,33 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
   const progress = Math.min((todayMins / settings.dailyGoalMins) * 100, 100);
   const isOverGoal = todayMins >= settings.dailyGoalMins;
 
+  const sharePost = async (postData: any) => {
+    if (!shareToSquare) return;
+    try {
+      await fetch('/api/community/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: settings.username || '神秘健身者',
+          ...postData,
+          timestamp: Date.now()
+        })
+      });
+    } catch (e) {
+      console.error('Failed to share to square', e);
+    }
+  };
+
   const handleRecord = () => {
     onAddRecord(duration, workoutType, selectedMood, selectedIntensity, 'workout');
+    sharePost({
+      recordType: 'workout',
+      type: workoutType,
+      durationMins: duration,
+      mood: selectedMood,
+      intensity: selectedIntensity,
+      content: `完成了 ${duration} 分钟的${workoutType}！感觉${selectedMood.split(' ')[1] || '不错'}。`
+    });
     setShowInput(false);
     setDuration(30);
     setSelectedMood(MOODS[0]);
@@ -79,6 +105,12 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
 
   const handleRest = () => {
     onAddRecord(0, '休息日', undefined, undefined, 'rest');
+    sharePost({
+      recordType: 'rest',
+      type: '休息日',
+      durationMins: 0,
+      content: '今天选择休息，是为了走得更远！'
+    });
     setShowResistAnim(true);
     setTimeout(() => setShowResistAnim(false), 2000);
   };
@@ -245,7 +277,19 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
                 </div>
               </div>
 
-              <div className="flex w-full mt-auto">
+              <div className="flex w-full mt-auto flex-col space-y-4">
+                <label className="flex items-center space-x-3 bg-app-bg px-4 py-3 rounded-xl border border-brand-light cursor-pointer select-none">
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-colors ${shareToSquare ? 'bg-brand-main border-brand-main' : 'bg-transparent border-brand-light'}`}>
+                    {shareToSquare && <span className="w-2.5 h-2.5 bg-white rounded-sm"></span>}
+                  </div>
+                  <span className="text-sm font-bold text-text-main flex-1">分享到锻炼广场</span>
+                  <input 
+                    type="checkbox"
+                    className="hidden"
+                    checked={shareToSquare}
+                    onChange={(e) => setShareToSquare(e.target.checked)}
+                  />
+                </label>
                 <button 
                   onClick={handleRecord}
                   className="w-full py-4 rounded-2xl bg-brand-dark text-white text-lg font-black active:scale-[0.98] transition-transform shadow-lg shadow-brand-dark/30"

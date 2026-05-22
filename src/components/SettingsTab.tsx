@@ -86,6 +86,27 @@ export function SettingsTab({ records, settings, updateSettings, resetData, impo
       <div className="bg-card-bg p-6 rounded-[2rem] shadow-sm border border-brand-light space-y-6">
         <div className="flex items-center space-x-3 text-text-main mb-4 border-b border-brand-light pb-4">
           <div className="bg-brand-light p-2 rounded-xl text-brand-main">
+            <Settings size={20} />
+          </div>
+          <h3 className="font-bold text-lg">社区身份</h3>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-text-muted">广场昵称</label>
+          <input
+            type="text"
+            value={settings.username || ''}
+            onChange={e => updateSettings({ username: e.target.value })}
+            placeholder="输入你的酷炫昵称"
+            maxLength={12}
+            className="w-full bg-app-bg border border-brand-light rounded-xl px-4 py-3 font-bold text-text-main outline-none focus:border-brand-main focus:ring-2 focus:ring-brand-main/20 transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="bg-card-bg p-6 rounded-[2rem] shadow-sm border border-brand-light space-y-6">
+        <div className="flex items-center space-x-3 text-text-main mb-4 border-b border-brand-light pb-4">
+          <div className="bg-brand-light p-2 rounded-xl text-brand-main">
             <Goal size={20} />
           </div>
           <h3 className="font-bold text-lg">运动目标</h3>

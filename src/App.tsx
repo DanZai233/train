@@ -13,6 +13,9 @@ import { TrendsTab } from './components/TrendsTab';
 import { HealthTab } from './components/HealthTab';
 import { SettingsTab } from './components/SettingsTab';
 
+import { Globe } from 'lucide-react';
+import { CommunityTab } from './components/CommunityTab';
+
 export default function App() {
   const { records, settings, addRecord, updateSettings, resetData, deleteRecord, importData, isLoaded } = useData();
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -33,6 +36,8 @@ export default function App() {
         return <TrendsTab records={records} settings={settings} />;
       case 'health':
         return <HealthTab records={records} settings={settings} />;
+      case 'community':
+        return <CommunityTab />;
       case 'settings':
         return <SettingsTab records={records} settings={settings} updateSettings={updateSettings} resetData={resetData} importData={importData} />;
     }
@@ -95,6 +100,12 @@ export default function App() {
               label="体能" 
               isActive={activeTab === 'health'} 
               onClick={() => setActiveTab('health')} 
+            />
+            <NavItem 
+              icon={<Globe size={24} strokeWidth={2.5} />} 
+              label="广场" 
+              isActive={activeTab === 'community'} 
+              onClick={() => setActiveTab('community')} 
             />
             <NavItem 
               icon={<Settings size={24} strokeWidth={2.5} />} 
