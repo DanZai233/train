@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --color-brand-main: var(--brand-main);
+  --color-brand-light: var(--brand-light);
+  --color-brand-dark: var(--brand-dark);
+  --color-app-bg: var(--app-bg);
+  --color-card-bg: var(--card-bg);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+:root, [data-theme="graphite"] {
+  --brand-main: #1f2937;
+  --brand-light: #f3f4f6;
+  --brand-dark: #111827;
+  --app-bg: #f9fafb;
+  --card-bg: #ffffff;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+}
+
+[data-theme="matcha"] {
+  --brand-main: #84cc16;
+  --brand-light: #ecfccb;
+  --brand-dark: #4d7c0f;
+  --app-bg: #f7fee7;
+  --card-bg: #ffffff;
+  --text-main: #365314;
+  --text-muted: #65a30d;
+}
+
+[data-theme="ocean"] {
+  --brand-main: #0ea5e9;
+  --brand-light: #e0f2fe;
+  --brand-dark: #0369a1;
+  --app-bg: #f0f9ff;
+  --card-bg: #ffffff;
+  --text-main: #0c4a6e;
+  --text-muted: #0284c7;
+}
+
+[data-theme="peach"] {
+  --brand-main: #f43f5e;
+  --brand-light: #ffe4e6;
+  --brand-dark: #be123c;
+  --app-bg: #fff1f2;
+  --card-bg: #ffffff;
+  --text-main: #881337;
+  --text-muted: #e11d48;
+}
+
+[data-theme="lavender"] {
+  --brand-main: #8b5cf6;
+  --brand-light: #ede9fe;
+  --brand-dark: #6d28d9;
+  --app-bg: #f5f3ff;
+  --card-bg: #ffffff;
+  --text-main: #4c1d95;
+  --text-muted: #7c3aed;
+}
+
+/* Hide scrollbar globally for mobile-like feel */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  background-color: var(--app-bg);
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}

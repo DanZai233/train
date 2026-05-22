@@ -1,0 +1,6 @@
+{
+  "name": "练了么",
+  "description": "用于记录用户健身数据，并支持生成个性化的AI训练报告。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
