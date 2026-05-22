@@ -37,7 +37,7 @@ export default function App() {
       case 'health':
         return <HealthTab records={records} settings={settings} />;
       case 'community':
-        return <CommunityTab />;
+        return <CommunityTab settings={settings} />;
       case 'settings':
         return <SettingsTab records={records} settings={settings} updateSettings={updateSettings} resetData={resetData} importData={importData} />;
     }

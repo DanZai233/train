@@ -11,7 +11,12 @@ interface HealthTabProps {
 
 export function HealthTab({ records, settings }: HealthTabProps) {
   const workoutRecords = records.filter(r => r.recordType !== 'rest');
-  const totalMins = workoutRecords.reduce((acc, r) => acc + r.durationMins, 0);
+  const totalMins = workoutRecords.reduce((acc, r) => {
+    let raw = r.durationMins ?? (r as any).duration ?? (r as any).time ?? (r as any).mins;
+    let mins = typeof raw === 'number' ? raw : parseInt(raw as any, 10);
+    if (Number.isNaN(mins) || !mins) mins = 0;
+    return acc + mins;
+  }, 0);
   const totalWorkouts = workoutRecords.length;
 
   const getFavoriteType = () => {
@@ -43,11 +48,11 @@ export function HealthTab({ records, settings }: HealthTabProps) {
         </div>
         <h3 className="text-sm font-bold text-white/70 mb-1 relative z-10">累计消耗估算 (千卡)</h3>
         <p className="text-5xl font-black mb-4 relative z-10 flex items-baseline gap-1">
-          {caloriesApprox}
+          {caloriesApprox > 0 ? caloriesApprox : 0}
           <Flame size={32} className="text-orange-400" />
         </p>
         <p className="text-sm font-medium text-white/80 relative z-10">
-          相当于燃烧了约 {Math.round(caloriesApprox / 7700 * 10) / 10} 公斤纯脂肪！
+          相当于燃烧了约 {Math.round((caloriesApprox > 0 ? caloriesApprox : 0) / 7700 * 10) / 10} 公斤纯脂肪！
         </p>
       </div>
 

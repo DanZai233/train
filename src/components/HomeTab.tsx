@@ -9,6 +9,19 @@ import { Dumbbell, Activity, Calendar, Zap, Play, Target, Sparkles, X, Trash2 } 
 const MOODS = ['😌 轻松', '🥵 疲惫', '💪 充满力量', '🎯 专注', '😊 愉快'];
 const INTENSITIES = ['低 (放松)', '中等 (微微出汗)', '高 (大汗淋漓)', '极限 (耗尽全力)'];
 
+const MOTIVATIONAL_QUOTES = [
+  "你的每一次坚持，都在雕刻更好的自己",
+  "借口烧不掉卡路里",
+  "现在的汗水，是未来的盔甲",
+  "哪怕只有15分钟，也胜过瘫在沙发上",
+  "不是看到希望才坚持，而是坚持了才会看到希望",
+  "把抱怨的时间，用来改变自己",
+  "再坚持一下，你比想象中更强大",
+  "今天流下的汗，会变成明天的光芒",
+  "别让未来的你，讨厌现在的自己",
+  "不逼自己一把，你永远不知道自己有多优秀"
+];
+
 interface HomeTabProps {
   records: WorkoutRecord[];
   settings: UserSettings;
@@ -50,6 +63,9 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
   const [selectedIntensity, setSelectedIntensity] = useState(INTENSITIES[1]);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
   const [shareToSquare, setShareToSquare] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  
+  const quote = useMemo(() => MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)], []);
 
   useEffect(() => {
     if (!currentWorkoutTypes.includes(workoutType)) {
@@ -156,9 +172,16 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="flex flex-col items-center justify-center space-y-8 w-full mt-4"
+              className="flex flex-col items-center justify-center w-full mt-2"
             >
-              <div className="relative">
+              <div className="text-center opacity-80 mt-2 mb-6 px-6">
+                <p className="text-sm font-bold text-text-muted flex items-center justify-center gap-1.5 leading-relaxed tracking-wider">
+                  <Sparkles size={14} className="text-brand-main shrink-0" />
+                  <span>{quote}</span>
+                  <Sparkles size={14} className="text-brand-main shrink-0" />
+                </p>
+              </div>
+              <div className="relative mb-8">
                   <AnimatePresence>
                       {showResistAnim && (
                           <motion.div
@@ -354,12 +377,19 @@ export function HomeTab({ records, settings, onAddRecord, onDeleteRecord }: Home
                     <span className="text-[11px] text-text-muted font-black tracking-wider bg-app-bg px-2 py-1 rounded-md border border-brand-light mb-2">
                       {format(r.timestamp, 'HH:mm')}
                     </span>
-                    <button 
-                      onClick={() => { if(confirm('确定要删除这条记录吗？')) onDeleteRecord(r.id); }}
-                      className="text-text-muted/40 hover:text-red-500 bg-brand-light/50 hover:bg-red-50 p-1.5 rounded-lg active:scale-95 transition-all"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {deleteConfirmId === r.id ? (
+                      <div className="flex gap-1 items-center bg-red-50 rounded-lg p-1">
+                        <button onClick={() => setDeleteConfirmId(null)} className="text-text-muted text-[10px] font-bold px-1.5 py-1">取消</button>
+                        <button onClick={() => onDeleteRecord(r.id)} className="text-red-500 font-bold text-[10px] px-1.5 py-1 bg-white rounded shadow-sm">确认</button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => setDeleteConfirmId(r.id)}
+                        className="text-text-muted/40 hover:text-red-500 bg-brand-light/50 hover:bg-red-50 p-1.5 rounded-lg active:scale-95 transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}

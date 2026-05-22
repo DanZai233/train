@@ -21,6 +21,13 @@ export interface UserSettings {
 
 export type TabType = 'home' | 'trends' | 'health' | 'community' | 'settings';
 
+export interface Comment {
+  id: string;
+  username: string;
+  content: string;
+  createdAt: number;
+}
+
 export interface CommunityPost {
   _id?: string;
   username: string;
@@ -32,5 +39,6 @@ export interface CommunityPost {
   mood?: string;
   timestamp: number;
   createdAt: number;
+  comments?: Comment[];
 }
 

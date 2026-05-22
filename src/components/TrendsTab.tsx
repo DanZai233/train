@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { WorkoutRecord, UserSettings } from '../types';
-import { subDays, format, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { subDays, format, startOfDay, endOfDay, isWithinInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDate } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 
 const INTENSITY_MAP: Record<string, number> = {
@@ -16,6 +17,8 @@ interface TrendsTabProps {
 }
 
 export function TrendsTab({ records, settings }: TrendsTabProps) {
+  const [selectedDay, setSelectedDay] = useState<any>(null);
+
   const chartData = useMemo(() => {
     const data = [];
     // Last 7 days
@@ -47,6 +50,40 @@ export function TrendsTab({ records, settings }: TrendsTabProps) {
     return data;
   }, [records]);
 
+  const calendarData = useMemo(() => {
+    const data = [];
+    const today = new Date();
+    const monthStart = startOfMonth(today);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
+    
+    for (const date of days) {
+      const start = startOfDay(date);
+      const end = endOfDay(date);
+      
+      const dayRecords = records.filter(r => 
+        isWithinInterval(r.timestamp, { start, end })
+      );
+      
+      const totalMins = dayRecords.filter(r => r.recordType !== 'rest').reduce((acc, r) => acc + r.durationMins, 0);
+      const isRest = dayRecords.some(r => r.recordType === 'rest');
+      
+      data.push({
+        date,
+        day: getDate(date),
+        totalMins,
+        isRest,
+        records: dayRecords,
+        isCurrentMonth: isSameMonth(date, today),
+        isToday: isToday(date)
+      });
+    }
+    return data;
+  }, [records]);
+
   const totalMins7Days = chartData.reduce((acc, day) => acc + day.mins, 0);
 
   const formatIntensityTooltip = (value: number) => {
@@ -56,10 +93,88 @@ export function TrendsTab({ records, settings }: TrendsTabProps) {
     return ['低', '平均强度'];
   };
 
+  const getHeatmapStyle = (mins: number, isRest: boolean) => {
+    if (mins === 0 && isRest) {
+      return { border: '2px solid var(--brand-main)', backgroundColor: 'transparent', color: 'var(--text-main)' };
+    }
+    if (mins === 0) {
+      return { backgroundColor: 'var(--brand-light)', color: 'var(--text-muted)' };
+    }
+    
+    let opacity = 0.4;
+    if (mins >= 60) opacity = 1;
+    else if (mins >= 30) opacity = 0.8;
+    else if (mins >= 15) opacity = 0.6;
+    
+    return { backgroundColor: `color-mix(in srgb, var(--brand-main) ${opacity * 100}%, transparent)`, color: 'white' };
+  };
+
   return (
     <div className="flex flex-col h-full overflow-y-auto px-6 py-6 pb-20">
       <h2 className="text-2xl font-black text-text-main mb-6 px-1">运动趋势</h2>
       
+      <div className="bg-card-bg p-6 rounded-[2rem] shadow-sm border border-brand-light mb-6">
+        <h3 className="text-sm font-bold text-text-muted mb-6">本月活跃度图谱</h3>
+        
+        <div className="grid grid-cols-7 gap-1 mb-2 text-center text-[10px] font-black text-text-muted">
+          <div>一</div>
+          <div>二</div>
+          <div>三</div>
+          <div>四</div>
+          <div>五</div>
+          <div>六</div>
+          <div>日</div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-2">
+          {calendarData.map((day, i) => (
+            <div 
+              key={i}
+              onClick={() => setSelectedDay(day)}
+              className={`aspect-square rounded-xl cursor-pointer flex justify-center items-center text-xs font-bold transition-all hover:scale-110 active:scale-95 
+                ${selectedDay?.date.getTime() === day.date.getTime() ? 'ring-2 ring-brand-main ring-offset-2 ring-offset-card-bg scale-110 z-10 relative shadow-md' : ''}
+                ${!day.isCurrentMonth ? 'opacity-30' : ''}`}
+              style={getHeatmapStyle(day.totalMins, day.isRest)}
+              title={`${format(day.date, 'MM/dd')} - ${day.totalMins} 分钟`}
+            >
+              <span className={`${day.isToday ? 'bg-text-main text-app-bg px-1.5 py-0.5 rounded-md shadow-sm' : ''}`}>
+                {day.day}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {selectedDay && (
+          <div className="mt-6 p-4 bg-app-bg rounded-2xl border border-brand-light animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="font-bold text-text-main">{format(selectedDay.date, 'M月d日')}</h4>
+              <span className="text-xs font-black text-brand-main bg-brand-main/10 px-2 py-1 rounded-md">
+                {selectedDay.totalMins > 0 ? `共 ${selectedDay.totalMins} 分钟` : (selectedDay.isRest ? '休息日' : '无记录')}
+              </span>
+            </div>
+            
+            {selectedDay.records.length > 0 ? (
+              <div className="space-y-2">
+                {selectedDay.records.map((r: any) => (
+                  <div key={r.id} className="flex justify-between items-center text-sm p-3 bg-brand-light/30 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-text-main">{r.type}</span>
+                      {r.intensity && <span className="text-[10px] font-bold text-text-muted bg-white/70 px-2 py-0.5 rounded-full">{r.intensity.split(' ')[0]}</span>}
+                      {r.mood && <span className="text-[10px] font-bold text-text-muted bg-white/70 px-2 py-0.5 rounded-full">{r.mood.split(' ')[0]}</span>}
+                    </div>
+                    <span className="font-bold text-text-muted text-xs">
+                      {r.recordType === 'rest' ? '休息' : `${r.durationMins}分`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs font-bold text-text-muted text-center py-4 bg-brand-light/20 rounded-xl">这天没有留下记录哦</p>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="bg-card-bg p-6 rounded-[2rem] shadow-sm border border-brand-light mb-6">
         <h3 className="text-sm font-bold text-text-muted mb-1">过去 7 天总时长</h3>
         <p className="text-4xl font-black text-brand-main mb-6">{totalMins7Days} <span className="text-lg font-medium text-text-muted">分钟</span></p>

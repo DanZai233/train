@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { UserSettings, WorkoutRecord } from '../types';
 import { Settings, RefreshCw, Trash2, Palette, Goal, Weight, MapPin, Dumbbell, Download, Upload } from 'lucide-react';
 import { format } from 'date-fns';
@@ -31,14 +31,9 @@ const EQUIPMENTS = [
 ];
 
 export function SettingsTab({ records, settings, updateSettings, resetData, importData }: SettingsTabProps) {
+  const [showConfigReset, setShowConfigReset] = useState(false);
+  const [importDataState, setImportDataState] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleReset = () => {
-    if (confirm('确定要清空所有记录和设置吗？此操作不可恢复。')) {
-      resetData();
-      alert('已清空所有数据！');
-    }
-  };
 
   const handleExport = () => {
     const data = { records, settings };
@@ -62,15 +57,12 @@ export function SettingsTab({ records, settings, updateSettings, resetData, impo
       try {
         const data = JSON.parse(event.target?.result as string);
         if (data && Array.isArray(data.records) && data.settings) {
-          if (confirm('导入数据将覆盖当前所有记录和设置，确定要继续吗？')) {
-            importData(data.records, data.settings);
-            alert('数据导入成功！');
-          }
+          setImportDataState(data);
         } else {
-          alert('数据格式不正确，导入失败。');
+          console.error('数据格式不正确');
         }
       } catch (error) {
-        alert('文件解析失败，请确保选择了正确的备份文件。');
+        console.error('文件解析失败');
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -230,12 +222,28 @@ export function SettingsTab({ records, settings, updateSettings, resetData, impo
           <h3 className="font-bold text-lg">危险区域</h3>
         </div>
         <p className="text-sm font-medium text-text-muted">这将会清空你所有的运动记录，且不可恢复。</p>
-        <button 
-          onClick={handleReset}
-          className="w-full py-4 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 active:scale-95 transition-all"
-        >
-          清空所有数据
-        </button>
+        
+        {!showConfigReset ? (
+          <button 
+            onClick={() => setShowConfigReset(true)}
+            className="w-full py-4 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 active:scale-95 transition-all"
+          >
+            清空所有数据
+          </button>
+        ) : (
+          <div className="flex gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100 items-center justify-between">
+            <span className="text-sm font-bold text-red-600 pl-2">确定清空吗？</span>
+            <div className="flex gap-2">
+              <button onClick={() => setShowConfigReset(false)} className="px-4 py-2 bg-white rounded-lg text-text-muted font-bold shadow-sm active:scale-95">取消</button>
+              <button 
+                onClick={() => { resetData(); setShowConfigReset(false); }} 
+                className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold shadow-sm active:scale-95"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-card-bg p-6 rounded-[2rem] shadow-sm border border-brand-light space-y-4 mb-6">
@@ -270,6 +278,26 @@ export function SettingsTab({ records, settings, updateSettings, resetData, impo
         <p className="text-xs font-bold text-text-muted">练了么 PRO V1.0</p>
         <p className="text-[10px] font-medium text-text-muted/50 mt-1">完全离线运行 · 数据安全</p>
       </div>
+
+      {/* Import Modal */}
+      {importDataState && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6">
+          <div className="bg-card-bg w-full max-w-sm rounded-[2rem] p-6 shadow-2xl relative">
+            <h3 className="text-xl font-black text-text-main mb-2">确认导入数据</h3>
+            <p className="text-sm font-bold text-text-muted mb-6">导入数据将会覆盖你当前所有的运动记录和设置。确定要继续吗？</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setImportDataState(null)}
+                className="flex-1 py-3.5 bg-brand-light text-text-main font-bold rounded-xl active:scale-95 transition-all"
+              >取消</button>
+              <button 
+                onClick={() => { importData(importDataState.records, importDataState.settings); setImportDataState(null); }}
+                className="flex-1 py-3.5 bg-brand-main text-white font-bold rounded-xl shadow-lg shadow-brand-main/30 active:scale-95 transition-all"
+              >确认导入</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

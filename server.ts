@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
 
 // MongoDB client setup
 let dbClient: MongoClient | null = null;
@@ -65,6 +65,31 @@ async function startServer() {
       res.json({ ...post, _id: result.insertedId });
     } catch (error) {
       res.status(500).json({ error: "Failed to create post" });
+    }
+  });
+
+  app.post("/api/community/posts/:id/comments", async (req, res) => {
+    if (!communityCollection) {
+      return res.status(500).json({ error: "Database not configured" });
+    }
+    try {
+      const { id } = req.params;
+      const comment = req.body;
+      comment.id = new ObjectId().toString();
+      comment.createdAt = Date.now();
+      
+      const result = await communityCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $push: { comments: comment } } as any
+      );
+      
+      if (result.modifiedCount === 1) {
+        res.json(comment);
+      } else {
+        res.status(404).json({ error: "Post not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add comment" });
     }
   });
 
